@@ -68,7 +68,7 @@ const CoinpushCharge = (() => {
 
         static getUrl()
         {
-            return 'http://www.coinpush.test'
+            return 'https://coinpush.io'
         }
 
         static getApiUrl()
