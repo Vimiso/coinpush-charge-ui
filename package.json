@@ -1,7 +1,7 @@
 {
   "name": "coinpush-charge-ui",
   "version": "1.0.0",
-  "description": "The coinpush.io charge UI plugin.",
+  "description": "The coinpush.io Charge UI plugin.",
   "main": "charge-ui.js",
   "dependencies": {
     "gulp": "^4.0.2",
