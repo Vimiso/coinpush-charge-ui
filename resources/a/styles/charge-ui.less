@@ -1,0 +1,331 @@
+// ---------------------------------------------------
+// Typography
+
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400');
+
+// ---------------------------------------------------
+// Dimensions
+
+@size: 1px;
+@base: 15em;
+@adjust: ((@size/@base) * @base);
+
+// ---------------------------------------------------
+// Pallete
+
+@colorPrimary: rgb(255, 130, 80);
+@colorSecondary: rgb(80, 130, 255);
+@colorTertiary: rgb(80, 225, 130);
+@colorQuaternary: rgb(255, 170, 40);
+
+@black: rgb(0, 0, 0);
+@slate: rgb(45, 45, 45);
+@white: rgb(253, 253, 253);
+@shite: rgb(230, 230, 230);
+
+// ---------------------------------------------------
+// Mixins
+
+.radius(@radius: 6px) {
+    -webkit-border-radius: @radius;
+    -moz-border-radius: @radius;
+    -o-border-radius: @radius;
+    border-radius: @radius;
+}
+
+.transition(@transition: all 0.1s ease-in-out) {
+    -webkit-transition: @transition;
+    -moz-transition: @transition;
+    -o-transition: @transition;
+    transition: @transition;
+}
+
+.boxSizing(@value: border-box) {
+    -webkit-box-sizing: @value;
+    -moz-box-sizing: @value;
+    box-sizing: @value;
+}
+
+.boxShadow(@color: fade(@slate, 5%), @property: 0 2px 2px) {
+    -webkit-box-shadow: @property @color;
+    -moz-box-shadow: @property @color;
+    box-shadow: @property @color;
+}
+
+// ---------------------------------------------------
+// Styles
+
+button {
+    &.cp-button {
+        .radius();
+        .transition();
+        border: none;
+        outline: none;
+        color: @white;
+        font: inherit;
+        cursor: pointer;
+        text-align: center;
+        padding: (10/@base);
+        margin-bottom: (10/@base);
+        text-transform: uppercase;
+        background: @colorSecondary;
+        font-family: 'Open Sans', sans-serif;
+
+        &:hover {
+            background: darken(@colorSecondary, 10%);
+        }
+
+        &:disabled {
+            cursor: default;
+            background: lighten(@slate, 50%);
+        }
+
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+
+        &.cp-currency {
+            width: 100%;
+            text-align: left;
+            background: @colorPrimary;
+
+            &:hover {
+                background: darken(@colorPrimary, 10%);
+            }
+        }
+    }
+}
+
+#cp-modal {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    position: fixed;
+    z-index: 9999999;
+    line-height: 1.4em;
+    background: @black;
+    background: fade(@black, 80%);
+    font-size: (14/@base);
+    font-family: 'Open Sans', sans-serif;
+
+    .cp-clear:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .cp-small {
+        line-height: 1.4em;
+        font-size: (11/@base);
+    }
+
+    .cp-tac {
+        display: block;
+        text-align: center;
+    }
+
+    .cp-border {
+        .radius();
+        border: 1px solid @shite;
+    }
+
+    img {
+        &.cp-chain,
+        &.cp-list {
+            width: auto;
+            height: 23px;
+            vertical-align: top;
+        }
+
+        &.cp-list {
+            .transition();
+            color: @white;
+            cursor: pointer;
+
+            &:hover {
+                opacity: .5;
+            }
+        }
+
+        &.cp-qr {
+            width: 100%;
+            height: auto;
+            vertical-align: top;
+        }
+
+        &.cp-status {
+            width: 15%;
+            height: auto;
+            vertical-align: top;
+            margin-bottom: (10/@base);
+        }
+
+        &#cp-loading {
+            width: 50px;
+            height: auto;
+            margin: (20/@base) 0;
+            vertical-align: top;
+            text-align: center;
+        }
+    }
+
+    #cp-modal-close {
+        top: 0;
+        right: 0;
+        color: @white;
+        .transition();
+        position: fixed;
+        cursor: pointer;
+        padding: (5/@base);
+        font-size: (28/@base);
+
+        &:hover,
+        &:focus {
+            color: fade(@white, 50%);
+        }
+    }
+
+    #cp-link {
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        color: @white;
+        position: fixed;
+        padding: (10/@base);
+        pointer-events: none;
+
+        a {
+            color: @colorQuaternary;
+            text-decoration: none;
+            pointer-events: initial;
+        }
+    }
+
+    #cp-modal-inner {
+        .radius();
+        .boxShadow();
+        margin: 10% auto;
+        overflow: hidden;
+        position: relative;
+        background: @white;
+        max-width: (500/@base);
+    }
+
+    #cp-modal-content {
+        .cp-section {
+            display: block;
+            padding: (10/@base);
+
+            .cp-panel {
+                float: left;
+                .boxSizing();
+                display: block;
+
+                &.cp-right {
+                    float: right;
+                }
+
+                &.cp-s1s4 {
+                    width: 22.5%;
+                    margin-right: 2.5%;
+                }
+
+                &.cp-s2s4 {
+                    width: 50%;
+                }
+
+                &.cp-s3s4 {
+                    width: 75%;
+                }
+
+                &.cp-s4s4 {
+                    width: 100%;
+                }
+            }
+
+            &.cp-details {
+                color: @white;
+                font-size: (16/@base);
+                background: @colorSecondary;
+
+                span {
+                    color: lighten(@colorSecondary, 20%);
+                }
+            }
+
+            &.cp-orders {
+                .cp-panel {
+                    padding: (10/@base);
+                }
+
+                p {
+                    margin-bottom: (10/@base);
+                }
+
+                label {
+                    display: block;
+                    margin-bottom: (5/@base);
+                    color: lighten(@slate, 50%);
+                }
+
+                #cp-expires {
+                    margin-top: (5/@base);
+                    padding-top: (5/@base);
+                    border-top: 1px solid @shite;
+
+                    .cp-time {
+                        color: @colorSecondary;
+                    }
+                }
+            }
+        }
+
+        input {
+            .radius();
+            .boxSizing();
+            width: 100%;
+            outline: none;
+            font-size: inherit;
+            font-family: inherit;
+            padding: (10/@base);
+            margin-bottom: (10/@base);
+            border: 1px solid @shite;
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+
+        p {
+            margin: 0 0 (10/@base) 0;
+
+            span {
+                color: lighten(@slate, 50%);
+            }
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+
+        h1 {
+            margin: 0;
+            font-style: normal;
+            font-size: (18/@base);
+            margin-bottom: (10/@adjust)
+        }
+
+        a {
+            display: inline-block;
+            text-decoration: none;
+            color: lighten(@slate, 25%);
+
+            &:hover,
+            &:focus {
+                color: @slate;
+            }
+        }
+    }
+}

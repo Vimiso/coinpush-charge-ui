@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Charge UI</title>
+    <link rel="stylesheet" type="text/css" href="./public/a/styles/charge-ui.css">
+</head>
+<body>
+    <button class="coinpush cp-button" data-token="w5RbHRf9UidFBUNbQF7L93il94hnbNxo">
+        Pay with Cryptocurrency
+    </button>
+
+    <script src="./public/a/scripts/charge-ui.js"></script>
+    <script>
+        let buttons = document.getElementsByClassName('coinpush');
+        const coinpush = new CoinpushCharge(buttons)
+
+        coinpush.requester.useTestnet()
+
+        coinpush.on('balance_sufficient', (status, charge) => {
+            coinpush.modal.showAwaitingConfirmation()
+        })
+
+        coinpush.on('balance_sufficient_confirmed', (status, charge) => {
+            charge.button.disabled = true
+
+            coinpush.stopListening(charge.button.dataset.token)
+
+            coinpush.modal.showPaymentAccepted('Redirecting...')
+        })
+    </script>
+</body>
+</html>
