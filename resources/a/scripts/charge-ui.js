@@ -894,23 +894,22 @@ class Charge
         this.ranTokenCallbacks.push(key)
     }
 
-    runCallbacks(statuses, charge, repeatable)
+    runCallback(status, charge, repeatable)
     {
-        repeatable = ! repeatable ? false : true
+        let token = charge.button.dataset.token
+        let key = status.status + ':' + token
 
-        statuses.forEach((status) => {
-            let token = charge.button.dataset.token
-            let key = status.status + ':' + token
-            let rep = repeatable ? true : ! this.hasRanTokenCallbacks(key)
-
-            if (this.hasCallbacks(status.status) && rep) {
+        if (this.hasCallbacks(status.status)) {
+            if (! this.hasRanTokenCallbacks(key) || repeatable) {
                 this.callbacks[status.status].forEach((callback) => {
                     callback(status, charge)
                 })
+            }
 
+            if (! this.hasRanTokenCallbacks(key) && ! repeatable) {
                 this.pushRanTokenCallbacks(key)
             }
-        })
+        }
     }
 
     stopListening(token)
@@ -952,11 +951,7 @@ class Charge
             return status.status
         })
 
-        let paidStatuses = ['balance_sufficient', 'balance_sufficient_confirmed']
-
-        return paidStatuses.every((status) => {
-            return ! statuses.includes(status)
-        })
+        return ! statuses.includes('balance_sufficient')
     }
 
     selectCharge(button)
@@ -986,12 +981,22 @@ class Charge
         let path = Site.getChargePath(token)
 
         this.requester.make(false, 'GET', path, {}, (response) => {
-            let statuses = response.results.statuses.reverse()
+            let statuses = response.results.statuses;
 
-            this.runCallbacks(statuses, charge, repeatable)
+            if (! this.intervals.has(charge.button.dataset.token)) {
+                this.intervals.set(charge.button.dataset.token, () => {
+                    this.updateChargeStatus(charge, false)
+                }, 10000)
+            }
 
-            if (this.hasNotPaid(statuses) && hasNotPaidCallback) {
-                hasNotPaidCallback()
+            if (statuses.length) {
+                let status = statuses[0]
+
+                this.runCallback(status, charge, repeatable)
+            }
+
+            if (this.hasNotPaid(statuses) && hasNotPaidCallback instanceof Function) {
+                hasNotPaidCallback(statuses)
             }
         })
     }
@@ -1002,7 +1007,7 @@ class Charge
         let token = charge.button.dataset.token
         let params = {charge_token: token}
 
-        this.updateChargeStatus(charge, true, () => {
+        this.updateChargeStatus(charge, true, (statuses) => {
             if (this.hasActiveAddress(currency, token)) {
                 let address = this.getActiveAddress(currency, token)
 
@@ -1011,12 +1016,6 @@ class Charge
             } else {
                 this.requester.make(true, 'POST', path, params, (response) => {
                     let address = response.results.address
-
-                    if (! this.intervals.has(charge.button.dataset.token)) {
-                        this.intervals.set(charge.button.dataset.token, () => {
-                            this.updateChargeStatus(charge, false)
-                        }, 10000)
-                    }
 
                     this.setActiveAddress(currency, token, address)
                     this.modal.showCharge(currency, charge, address, this)
