@@ -2,7 +2,7 @@
 
 The Coinpush Charge UI plugin enables a cryptocurrency payment modal in your web applications.
 
-It is initialised with charge tokens generated via the [Coinpush.io API](https://coinpush.io/docs/api#approach-b), or any of its supported SDKs.
+It is initialised with charge tokens generated via the [Coinpush.io API](https://coinpush.io/docs/api#approach-b), or any of its supported [SDKs](https://coinpush.io/library).
 
 Read the [Coinpush.io Charge UI Docs](https://coinpush.io/docs/charge) to see a working demo.
 
