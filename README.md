@@ -74,6 +74,8 @@ Want to request the [Coinpush.io Testnet](https://coinpush.io/api/testnet)? Enab
 coinpush.requester.useTestnet()
 ```
 
+IMPORTANT: Do not send real payments to any addresses created on the Testnet.
+
 ### Events
 
 To monitor a charge you must listen for payment statuses. Let's check them out:
