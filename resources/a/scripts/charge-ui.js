@@ -894,22 +894,25 @@ class Charge
         this.ranTokenCallbacks.push(key)
     }
 
-    runCallback(status, charge, repeatable)
+    runCallbacks(statuses, charge, repeatable)
     {
         let token = charge.button.dataset.token
-        let key = status.status + ':' + token
 
-        if (this.hasCallbacks(status.status)) {
-            if (! this.hasRanTokenCallbacks(key) || repeatable) {
-                this.callbacks[status.status].forEach((callback) => {
-                    callback(status, charge)
-                })
-            }
+        statuses.forEach((status) => {
+            if (this.hasCallbacks(status.status)) {
+                let key = status.status + ':' + token
 
-            if (! this.hasRanTokenCallbacks(key) && ! repeatable) {
-                this.pushRanTokenCallbacks(key)
+                if (! this.hasRanTokenCallbacks(key) || repeatable) {
+                    this.callbacks[status.status].forEach((callback) => {
+                        callback(status, charge)
+                    })
+                }
+
+                if (! this.hasRanTokenCallbacks(key) && ! repeatable) {
+                    this.pushRanTokenCallbacks(key)
+                }
             }
-        }
+        })
     }
 
     stopListening(token)
@@ -981,7 +984,8 @@ class Charge
         let path = Site.getChargePath(token)
 
         this.requester.make(false, 'GET', path, {}, (response) => {
-            let statuses = response.results.statuses;
+            // Reverse the statuses to get the oldest first.
+            let statuses = response.results.statuses.reverse()
 
             if (! this.intervals.has(charge.button.dataset.token)) {
                 this.intervals.set(charge.button.dataset.token, () => {
@@ -989,11 +993,7 @@ class Charge
                 }, 10000)
             }
 
-            if (statuses.length) {
-                let status = statuses[0]
-
-                this.runCallback(status, charge, repeatable)
-            }
+            this.runCallbacks(statuses, charge, repeatable)
 
             if (this.hasNotPaid(statuses) && hasNotPaidCallback instanceof Function) {
                 hasNotPaidCallback(statuses)
