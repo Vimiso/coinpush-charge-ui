@@ -119,6 +119,29 @@ class Site
 
 // -----------------------------------------------
 
+class Clippable
+{
+    static set(elem)
+    {
+        elem.onclick = () => {
+            document.execCommand('selectall', null, false)
+            document.execCommand('copy')
+        }
+
+        elem.addEventListener('copy', (event) => {
+            event.preventDefault()
+
+            if (event.clipboardData) {
+                event.clipboardData.setData('text/plain', elem.getAttribute('value'))
+            }
+        })
+
+        return elem
+    }
+}
+
+// -----------------------------------------------
+
 class Countdown
 {
     constructor(intervals)
@@ -278,19 +301,19 @@ class Modal
         return elem
     }
 
-    makeLoading()
+    makePreloadedImg(attrs)
     {
-        let wrap = this.makeElem('div', {class: 'cp-tac'})
+        let elem = this.makeElem('img', attrs)
 
-        wrap.appendChild(
-            this.makeElem('img', {
-                id: 'cp-loading',
-                alt: 'loading...',
-                src: Site.getImageUrl('loading')
+        return new Promise((resolve) => {
+            elem.addEventListener('load', () => {
+                resolve(elem)
             })
-        )
 
-        return wrap
+            elem.addEventListener('error', () => {
+                resolve(this.makeElem('span', {}, elem.getAttribute('alt')))
+            })
+        })
     }
 
     makeSection(classes, html)
@@ -308,48 +331,6 @@ class Modal
         return this.makeElem('div', {id: this.ids.status, class: classes}, html)
     }
 
-    makeTextInput(classes, value)
-    {
-        return this.makeElem('input', {
-            spellcheck: 'false',
-            class: classes,
-            value: value
-        })
-    }
-
-    makeMenuButton(charge, coinpush)
-    {
-        let wrap = this.makeElem('img', {
-            class: 'cp-list',
-            alt: 'menu',
-            src: Site.getImageUrl('menu')
-        })
-
-        wrap.addEventListener('click', (event) => {
-            event.preventDefault()
-
-            coinpush.selectCharge(charge.button)
-        })
-
-        return wrap
-    }
-
-    makeWalletLink(address)
-    {
-        let qrVal = Converter.addressToQrValue(address)
-        let qrUrl = Site.getQrCodeUrl(qrVal)
-        let wrap = this.makeElem('a', {href: qrVal})
-
-        wrap.appendChild(
-            this.makeElem('img', {class: 'cp-qr', alt: 'qr', src: qrUrl})
-        )
-        wrap.appendChild(
-            this.makeElem('span', {class: 'cp-small'}, 'Open wallet')
-        )
-
-        return wrap
-    }
-
     makeSendingFields(charge, address)
     {
         let wrap = this.makeElem('div')
@@ -359,40 +340,22 @@ class Modal
             + ' <span>using</span> '
             + Converter.chainToReadable(address.chain)
         let payAmount = Converter.satsToFloat(address.expected_amount)
+        let amountInput = this.makeElem('input', {
+            spellcheck: 'false',
+            value: payAmount,
+            id: 'cp-amount-input'
+        })
+        let depositInput = this.makeElem('input', {
+            spellcheck: 'false',
+            value: address.deposit_address,
+            id: 'cp-deposit-input'
+        })
 
         wrap.appendChild(this.makeElem('p', {}, payHtml))
-        wrap.appendChild(this.makeElem('label', {}, 'Send'))
-        wrap.appendChild(this.makeTextInput(null, payAmount))
-        wrap.appendChild(this.makeElem('label', {}, 'To'))
-        wrap.appendChild(this.makeTextInput(null, address.deposit_address))
-
-        return wrap
-    }
-
-    makeChargeDetails(currency, charge, coinpush)
-    {
-        let wrap = this.makeSection('cp-details')
-        let left = this.makePanel()
-        let right = this.makePanel('cp-right')
-
-        left.appendChild(this.makeMenuButton(charge, coinpush))
-        left.appendChild(
-            this.makeElem('span', {}, '&nbsp;<span>&#x203A;</span>&nbsp;')
-        )
-        left.appendChild(
-            this.makeElem('img', {
-                class: 'cp-chain',
-                alt: currency,
-                src: Site.getImageUrl(currency)
-            })
-        )
-
-        right.appendChild(
-            this.makeStatus(null, 'Waiting for payment...')
-        )
-
-        wrap.appendChild(left)
-        wrap.appendChild(right)
+        wrap.appendChild(this.makeElem('label', {for: 'cp-amount-input'}, 'Send'))
+        wrap.appendChild(Clippable.set(amountInput))
+        wrap.appendChild(this.makeElem('label', {for: 'cp-deposit-input'}, 'To'))
+        wrap.appendChild(Clippable.set(depositInput))
 
         return wrap
     }
@@ -403,7 +366,7 @@ class Modal
         let remaining = this.makeElem('div', {class: 'cp-small'}, 'expires in:')
         let countdown = this.makeElem('div', {class: 'cp-small cp-time'}, '--:--')
         let token = charge.button.dataset.token
-        let key = currency + ":" + token + ":" + address.deposit_address
+        let key = currency + ':' + token + ':' + address.deposit_address
 
         wrap.appendChild(remaining)
         wrap.appendChild(countdown)
@@ -417,13 +380,89 @@ class Modal
         return wrap
     }
 
-    makeChargeOrders(currency, charge, address, coinpush)
+    async makeLoading()
+    {
+        let wrap = this.makeElem('div', {class: 'cp-tac'})
+
+        wrap.appendChild(
+            await this.makePreloadedImg({
+                id: 'cp-loading',
+                alt: 'loading...',
+                src: Site.getImageUrl('loading')
+            })
+        )
+
+        return wrap
+    }
+
+    async makeMenuButton(charge, coinpush)
+    {
+        let wrap = await this.makePreloadedImg({
+            class: 'cp-list',
+            alt: 'menu',
+            src: Site.getImageUrl('menu')
+        })
+
+        wrap.addEventListener('click', async (event) => {
+            event.preventDefault()
+
+            coinpush.selectCharge(charge.button)
+        })
+
+        return wrap
+    }
+
+    async makeWalletLink(address)
+    {
+        let qrVal = Converter.addressToQrValue(address)
+        let qrUrl = Site.getQrCodeUrl(qrVal)
+        let wrap = this.makeElem('a', {href: qrVal})
+
+        wrap.appendChild(
+            await this.makePreloadedImg({
+                class: 'cp-qr', alt: 'qr', src: qrUrl
+            })
+        )
+        wrap.appendChild(
+            this.makeElem('span', {
+                class: 'cp-small'
+            }, 'Open wallet')
+        )
+
+        return wrap
+    }
+
+    async makeChargeDetails(currency, charge, coinpush)
+    {
+        let wrap = this.makeSection('cp-details')
+        let left = this.makePanel()
+        let right = this.makePanel('cp-right')
+
+        left.appendChild(await this.makeMenuButton(charge, coinpush))
+        left.appendChild(this.makeElem('span', {}, '&nbsp;<span>&#x203A;</span>&nbsp;'))
+        left.appendChild(
+            await this.makePreloadedImg({
+                class: 'cp-chain',
+                alt: currency,
+                src: Site.getImageUrl(currency)
+            })
+        )
+
+        right.appendChild(this.makeStatus(null, 'Awaiting payment...'))
+
+        wrap.appendChild(left)
+        wrap.appendChild(right)
+
+        return wrap
+    }
+
+    async makeChargeOrders(currency, charge, address, coinpush)
     {
         let wrap = this.makeSection('cp-orders')
         let left = this.makePanel('cp-s1s4 cp-tac cp-border')
         let right = this.makePanel('cp-s3s4 cp-border')
 
-        left.appendChild(this.makeWalletLink(address))
+        left.appendChild(await this.makeWalletLink(address))
         left.appendChild(this.makeExpiryCountdown(currency, charge, address, coinpush))
         right.appendChild(this.makeSendingFields(charge, address))
 
@@ -514,60 +553,86 @@ class Modal
         this.appendContent(section)
     }
 
-    showSelectCharge(charge, callback)
+    async showLoading()
     {
-        let buttons = this.makeSection()
+        this.show()
+        this.clearContent()
+        this.appendContent(await this.makeLoading())
+    }
+
+    async showSelectCharge(charge, callback)
+    {
         let details = this.makeSection('cp-details cp-tac',  this.notices.select)
 
-        charge.accept.forEach((currency) => {
+        async function getButtons(currencies, callback) {
+            let buttons = {};
+
+            for (let i = 0; i < currencies.length; i++) {
+                let value = currencies[i]
+
+                buttons[value] = await callback(value)
+            }
+
+            return buttons
+        }
+
+        let buttons = await getButtons(charge.accept, async (currency) => {
             let button = this.makeElem('button', {
                 class: 'cp-button cp-currency'
             })
+            let chain = Converter.chainToReadable(Converter.currencyToChain(currency))
 
             button.appendChild(
-                this.makeElem('img', {
+                await this.makePreloadedImg({
                     class: 'cp-chain',
                     alt: currency,
                     src: Site.getImageUrl(currency)
                 })
             )
-            button.appendChild(
-                this.makeElem(
-                    'span',
-                    {},
-                    '&nbsp;&nbsp;'
-                        + Converter.chainToReadable(
-                            Converter.currencyToChain(currency)
-                        )
-                )
-            )
+            button.appendChild(this.makeElem('span', {}, '&nbsp;&nbsp;' + chain))
             button.addEventListener('click', () => {
                 callback(currency, charge)
             })
 
-            buttons.appendChild(button)
+            return button
+        })
+
+        let listable = this.makeSection()
+        let sorted = Object.keys(buttons).sort().reduce((total, value) => {
+            total[value] = buttons[value]
+
+            return total
+        }, {})
+
+        Object.keys(sorted).forEach((key) => {
+            listable.appendChild(sorted[key])
         })
 
         this.show()
         this.clearContent()
         this.appendContent(details)
-        this.appendContent(buttons)
+        this.appendContent(listable)
     }
 
-    showCharge(currency, charge, address, coinpush)
+    async showCharge(currency, charge, address, coinpush)
     {
+        let [details, orders] = [
+            await this.makeChargeDetails(currency, charge, coinpush),
+            await this.makeChargeOrders(currency, charge, address, coinpush)
+        ]
+
         this.show()
         this.clearContent()
-        this.appendContent(this.makeChargeDetails(currency, charge, coinpush))
-        this.appendContent(this.makeChargeOrders(currency, charge, address, coinpush))
+        this.appendContent(details)
+        this.appendContent(orders)
     }
 
-    showAwaitingConfirmation(message)
+    async showAwaitingConfirmation(message)
     {
         let section = this.makeSection('cp-tac')
 
         section.appendChild(
-            this.makeElem('img', {
+            await this.makePreloadedImg({
                 class: 'cp-status',
                 alt: 'success',
                 src: Site.getImageUrl('timer')
@@ -585,12 +650,12 @@ class Modal
         this.appendContent(section)
     }
 
-    showPaymentAccepted(message)
+    async showPaymentAccepted(message)
     {
         let section = this.makeSection('cp-tac')
 
         section.appendChild(
-            this.makeElem('img', {
+            await this.makePreloadedImg({
                 class: 'cp-status',
                 alt: 'success',
                 src: Site.getImageUrl('tick')
@@ -739,14 +804,10 @@ class Requester
 
     makeUrl(path)
     {
-        let base = ! this.testnet
-            ? Site.getApiUrl()
-            : Site.getApiTestnetUrl()
+        let base = ! this.testnet ? Site.getApiUrl() : Site.getApiTestnetUrl()
 
         if (this.isUsingDevMode()) {
-            base = ! this.testnet
-                ? Site.getApiDevUrl()
-                : Site.getApiDevTestnetUrl()
+            base = ! this.testnet ? Site.getApiDevUrl() : Site.getApiDevTestnetUrl()
         }
 
         return base + path
@@ -763,10 +824,9 @@ class Requester
         })
 
         xhr.timeout = this.timeout
-        xhr.onloadstart = () => {
+        xhr.onloadstart = async () => {
             if (showModalLoading) {
-                this.modal.clearContent()
-                this.modal.appendContent(this.modal.makeLoading())
+                this.modal.showLoading()
             }
         }
 
@@ -922,21 +982,21 @@ class Charge
 
     setActiveAddress(currency, token, address)
     {
-        let key = currency + ":" + token
+        let key = currency + ':' + token
 
         this.activeAddresses[key] = address
     }
 
     getActiveAddress(currency, token)
     {
-        let key = currency + ":" + token
+        let key = currency + ':' + token
 
         return this.activeAddresses[key]
     }
 
     hasActiveAddress(currency, token)
     {
-        let key = currency + ":" + token
+        let key = currency + ':' + token
 
         if (this.activeAddresses[key] === undefined) {
             return false
