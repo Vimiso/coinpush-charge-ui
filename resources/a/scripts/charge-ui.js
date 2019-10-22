@@ -813,7 +813,7 @@ class Requester
         return base + path
     }
 
-    make(showModalLoading, method, path, params, success, failure)
+    make(showLoading, method, path, params, success, failure)
     {
         let xhr = new XMLHttpRequest()
         let url = this.makeUrl(path)
@@ -825,7 +825,7 @@ class Requester
 
         xhr.timeout = this.timeout
         xhr.onloadstart = async () => {
-            if (showModalLoading) {
+            if (showLoading) {
                 this.modal.showLoading()
             }
         }
@@ -839,7 +839,7 @@ class Requester
             } else {
                 if (failure) {
                     failure(response, xhr.statusText)
-                } else if (showModalLoading) {
+                } else if (showLoading) {
                     this.modal.showError(response, xhr.statusText)
                 }
             }
@@ -848,7 +848,7 @@ class Requester
         xhr.onerror = () => {
             if (failure) {
                 failure({}, xhr.statusText)
-            } else if (showModalLoading) {
+            } else if (showLoading) {
                 this.modal.showError({}, xhr.statusText, 'error')
             }
         }
@@ -858,7 +858,7 @@ class Requester
 
             if (failure) {
                 failure({}, statusText)
-            } else if (showModalLoading) {
+            } else if (showLoading) {
                 this.modal.showError({}, statusText)
             }
         }
@@ -1038,18 +1038,18 @@ class Charge
         })
     }
 
-    updateChargeStatus(charge, repeatable, hasNotPaidCallback)
+    updateChargeStatus(charge, showLoading, repeatable, hasNotPaidCallback)
     {
         let token = charge.button.dataset.token
         let path = Site.getChargePath(token)
 
-        this.requester.make(false, 'GET', path, {}, (response) => {
+        this.requester.make(showLoading, 'GET', path, {}, (response) => {
             // Reverse the statuses to get the oldest first.
             let statuses = response.results.statuses.reverse()
 
             if (! this.intervals.has(charge.button.dataset.token)) {
                 this.intervals.set(charge.button.dataset.token, () => {
-                    this.updateChargeStatus(charge, false)
+                    this.updateChargeStatus(charge, false, false)
                 }, 10000)
             }
 
@@ -1067,7 +1067,7 @@ class Charge
         let token = charge.button.dataset.token
         let params = {charge_token: token}
 
-        this.updateChargeStatus(charge, true, (statuses) => {
+        this.updateChargeStatus(charge, true, true, (statuses) => {
             if (this.hasActiveAddress(currency, token)) {
                 let address = this.getActiveAddress(currency, token)
 
