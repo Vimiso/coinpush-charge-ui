@@ -21,7 +21,7 @@
 @black: rgb(0, 0, 0);
 @slate: rgb(45, 45, 45);
 @white: rgb(253, 253, 253);
-@shite: rgb(230, 230, 230);
+@shite: rgb(233, 233, 233);
 
 // ---------------------------------------------------
 // Mixins
@@ -46,7 +46,7 @@
     box-sizing: @value;
 }
 
-.boxShadow(@color: fade(@slate, 5%), @property: 0 2px 2px) {
+.boxShadow(@color: fade(@black, 10%), @property: 0 2px 2px) {
     -webkit-box-shadow: @property @color;
     -moz-box-shadow: @property @color;
     box-shadow: @property @color;
@@ -206,7 +206,7 @@ button {
     #cp-modal-inner {
         .radius();
         .boxShadow();
-        margin: 10% auto;
+        margin: 15% auto;
         overflow: hidden;
         position: relative;
         background: @white;
