@@ -74,7 +74,7 @@ Want to request the [Coinpush.io Testnet](https://coinpush.io/api/testnet)? Enab
 coinpush.requester.useTestnet()
 ```
 
-IMPORTANT: Do not send real payments to any addresses created on the Testnet.
+IMPORTANT: Please do not send real payments to any addresses created on the Testnet, as our systems do not monitor them automatically.
 
 ### Events
 
