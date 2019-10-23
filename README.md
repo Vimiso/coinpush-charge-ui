@@ -117,7 +117,7 @@ coinpush.on('balance_sufficient_confirmed', (status, charge) => {
     // TIP: Make sure you created the charge token.
     // TIP: Ensure the charge token cannot be used again.
     setInterval(() => {
-        window.location.href = '/thank-you?token=' + token
+        window.location.href = '/thank-you?token=' + charge.button.dataset.token
     }, 3000)
 })
 ```
