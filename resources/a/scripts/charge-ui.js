@@ -208,7 +208,8 @@ class Modal
             inner: 'cp-modal-inner',
             content: 'cp-modal-content',
             status: 'cp-status',
-            close: 'cp-modal-close'
+            close: 'cp-modal-close',
+            loading: 'cp-loading'
         }
         this.notices = {
             select: 'Select a cryptocurrency to pay with',
@@ -242,9 +243,14 @@ class Modal
         return document.getElementById(this.ids.base) !== null
     }
 
+    isLoading()
+    {
+        return this.isOpen() && document.getElementById(this.ids.loading) !== null
+    }
+
     statusIsVisible()
     {
-        return document.getElementById(this.ids.status) !== null
+        return this.isOpen() && document.getElementById(this.ids.status) !== null
     }
 
     makeElem(type, attrs, html) {
@@ -386,7 +392,7 @@ class Modal
 
         wrap.appendChild(
             await this.makePreloadedImg({
-                id: 'cp-loading',
+                id: this.ids.loading,
                 alt: 'loading...',
                 src: Site.getImageUrl('loading')
             })
@@ -555,9 +561,14 @@ class Modal
 
     async showLoading()
     {
-        this.show()
-        this.clearContent()
-        this.appendContent(await this.makeLoading())
+        if (! this.isLoading()) {
+            console.log('loadingShow')
+            this.show()
+            this.clearContent()
+            this.appendContent(await this.makeLoading())
+        } else {
+            console.log('loadingAlready')
+        }
     }
 
     async showSelectCharge(charge, callback)
