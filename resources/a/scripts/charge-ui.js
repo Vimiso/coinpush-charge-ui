@@ -562,12 +562,9 @@ class Modal
     async showLoading()
     {
         if (! this.isLoading()) {
-            console.log('loadingShow')
             this.show()
             this.clearContent()
             this.appendContent(await this.makeLoading())
-        } else {
-            console.log('loadingAlready')
         }
     }
 
